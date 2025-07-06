@@ -3,67 +3,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Bot, Cog, Code, ArrowRight, CheckCircle, Calendar, ExternalLink } from "lucide-react"
 import Link from "next/link"
+import { getServices } from "@/lib/sanity"
 
-export default function ServicesPage() {
-  const services = [
-    {
-      icon: Bot,
-      title: "AI Systems & Intelligent Agents",
-      description: "Transform your engineering workflows with custom AI agents and intelligent automation systems",
-      longDescription:
-        "Leverage the power of artificial intelligence to solve complex engineering challenges. I develop custom AI solutions that integrate seamlessly with your existing workflows, from predictive maintenance systems to intelligent design optimization tools.",
-      features: [
-        "Custom AI Model Development",
-        "Predictive Analysis Systems",
-        "Workflow Automation",
-        "Intelligent Data Processing",
-        "Machine Learning Integration",
-        "Process Optimization",
-      ],
-      technologies: ["Python", "TensorFlow", "PyTorch", "Scikit-learn", "OpenAI API", "Google Cloud AI"],
-      pricing: "Starting from $2,500",
-      timeline: "2-6 weeks",
-      link: "/services/ai-systems",
-    },
-    {
-      icon: Cog,
-      title: "CAD/CAM Design",
-      description: "Precision mechanical design and documentation using industry-standard tools",
-      longDescription:
-        "Professional mechanical design services combining traditional engineering expertise with modern CAD/CAM technologies. From concept sketches to manufacturing-ready drawings, I deliver precise, manufacturable designs.",
-      features: [
-        "3D Modeling & Design",
-        "Technical Documentation",
-        "Finite Element Analysis (FEA)",
-        "Manufacturing Support",
-        "Design Optimization",
-        "Prototyping Assistance",
-      ],
-      technologies: ["SolidWorks", "AutoCAD", "AutoCAD Mechanical", "MATLAB", "CNC Programming"],
-      pricing: "Starting from $1,500",
-      timeline: "1-4 weeks",
-      link: "/services/cad-design",
-    },
-    {
-      icon: Code,
-      title: "Frontend Development",
-      description: "User-friendly applications that bring your engineering data to life",
-      longDescription:
-        "Modern web applications designed specifically for engineering workflows. I create intuitive interfaces that make complex engineering data accessible and actionable for your team.",
-      features: [
-        "Responsive Web Applications",
-        "Data Visualization Dashboards",
-        "Engineering Calculators",
-        "Project Management Tools",
-        "API Integration",
-        "Database Design",
-      ],
-      technologies: ["React", "Next.js", "TypeScript", "Tailwind CSS", "Node.js", "PostgreSQL"],
-      pricing: "Starting from $2,000",
-      timeline: "2-8 weeks",
-      link: "/services/frontend-development",
-    },
-  ]
+export default async function ServicesPage() {
+  const services = await getServices()
+
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case "Bot":
+        return Bot
+      case "Cog":
+        return Cog
+      case "Code":
+        return Code
+      default:
+        return Bot // Default icon
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -115,96 +71,83 @@ export default function ServicesPage() {
 
           {/* Services Grid */}
           <div className="space-y-16">
-            {services.map((service, index) => (
-              <Card key={index} className="overflow-hidden shadow-xl border-0">
-                <div className="grid lg:grid-cols-2 gap-0">
-                  <CardHeader className="p-12 bg-white">
-                    <div className="flex items-center space-x-4 mb-6">
-                      <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
-                        <service.icon className="w-8 h-8 text-blue-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-2xl">{service.title}</CardTitle>
-                        <div className="flex items-center space-x-4 mt-2">
-                          <Badge variant="outline">{service.pricing}</Badge>
-                          <Badge variant="secondary">{service.timeline}</Badge>
+            {services.map((service, index) => {
+              const IconComponent = getIconComponent(service.icon)
+              return (
+                <Card key={index} className="overflow-hidden shadow-xl border-0">
+                  <div className="grid lg:grid-cols-2 gap-0">
+                    <CardHeader className="p-12 bg-white">
+                      <div className="flex items-center space-x-4 mb-6">
+                        <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
+                          <IconComponent className="w-8 h-8 text-blue-600" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-2xl">{service.title}</CardTitle>
+                          <div className="flex items-center space-x-4 mt-2">
+                            <Badge variant="outline">{service.pricing}</Badge>
+                            <Badge variant="secondary">{service.timeline}</Badge>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <p className="text-slate-600 mb-6 text-lg">{service.longDescription}</p>
+                      <p className="text-slate-600 mb-6 text-lg">{service.longDescription}</p>
 
-                    <div className="mb-8">
-                      <h4 className="font-semibold text-slate-900 mb-4">What's Included:</h4>
-                      <div className="grid grid-cols-1 gap-3">
-                        {service.features.map((feature, idx) => (
-                          <div key={idx} className="flex items-center space-x-3">
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                            <span className="text-slate-600">{feature}</span>
-                          </div>
+                      <div className="mb-8">
+                        <h4 className="font-semibold text-slate-900 mb-4">What's Included:</h4>
+                        <div className="grid grid-cols-1 gap-3">
+                          {service.features.map((feature: string, idx: number) => (
+                            <div key={idx} className="flex items-center space-x-3">
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                              <span className="text-slate-600">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex space-x-4">
+                        <Button asChild className="flex-1 bg-blue-600 hover:bg-blue-700">
+                          <Link href={`/services/${service.slug.current}`}>
+                            Learn More
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </Link>
+                        </Button>
+                        <Button variant="outline" className="flex-1 bg-transparent">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Book Call
+                        </Button>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="p-12 bg-slate-50">
+                      <h4 className="font-semibold text-slate-900 mb-6">Technologies & Tools:</h4>
+                      <div className="flex flex-wrap gap-3 mb-8">
+                        {service.technologies.map((tech: string, idx: number) => (
+                          <Badge key={idx} variant="outline" className="bg-white px-3 py-1">
+                            {tech}
+                          </Badge>
                         ))}
                       </div>
-                    </div>
 
-                    <div className="flex space-x-4">
-                      <Button asChild className="flex-1 bg-blue-600 hover:bg-blue-700">
-                        <Link href={service.link}>
-                          Learn More
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Link>
-                      </Button>
-                      <Button variant="outline" className="flex-1 bg-transparent">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Book Call
-                      </Button>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="p-12 bg-slate-50">
-                    <h4 className="font-semibold text-slate-900 mb-6">Technologies & Tools:</h4>
-                    <div className="flex flex-wrap gap-3 mb-8">
-                      {service.technologies.map((tech, idx) => (
-                        <Badge key={idx} variant="outline" className="bg-white px-3 py-1">
-                          {tech}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    <div className="space-y-6">
-                      <div className="bg-white p-6 rounded-lg">
-                        <h5 className="font-semibold text-slate-900 mb-3">Process Overview</h5>
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                              1
-                            </div>
-                            <span className="text-slate-600">Discovery & Requirements</span>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                              2
-                            </div>
-                            <span className="text-slate-600">Solution Design</span>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                              3
-                            </div>
-                            <span className="text-slate-600">Development & Testing</span>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                              4
-                            </div>
-                            <span className="text-slate-600">Deployment & Support</span>
+                      <div className="space-y-6">
+                        <div className="bg-white p-6 rounded-lg">
+                          <h5 className="font-semibold text-slate-900 mb-3">Process Overview</h5>
+                          <div className="space-y-3">
+                            {service.process.map((step: string, idx: number) => (
+                              <div key={idx} className="flex items-center space-x-3">
+                                <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                  {idx + 1}
+                                </div>
+                                <span className="text-slate-600">{step}</span>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </div>
-              </Card>
-            ))}
+                    </CardContent>
+                  </div>
+                </Card>
+              )
+            })}
           </div>
 
           {/* CTA Section */}

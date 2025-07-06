@@ -4,83 +4,14 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Calendar, Clock, ArrowRight, Search, User, Tag } from "lucide-react"
 import Image from "next/image"
+import { getPosts, getFeaturedPosts, urlFor } from "@/lib/sanity"
 
-export default function BlogPage() {
-  const blogPosts = [
-    {
-      id: 1,
-      title: "The Future of AI in Mechanical Engineering: Bridging Traditional Design with Intelligent Automation",
-      excerpt:
-        "Exploring how artificial intelligence is revolutionizing mechanical engineering workflows, from predictive maintenance to automated design optimization.",
-      image: "/placeholder.svg?height=300&width=500",
-      category: "AI & Engineering",
-      author: "Srinivas Nampalli",
-      date: "2025-01-15",
-      readTime: "8 min read",
-      tags: ["AI", "Mechanical Engineering", "Automation", "Industry 4.0"],
-      featured: true,
-    },
-    {
-      id: 2,
-      title: "CAD to Code: Automating Engineering Workflows with Python",
-      excerpt:
-        "A comprehensive guide on how to integrate Python scripting with CAD software to automate repetitive design tasks and improve productivity.",
-      image: "/placeholder.svg?height=300&width=500",
-      category: "Engineering Tools",
-      author: "Srinivas Nampalli",
-      date: "2025-01-10",
-      readTime: "12 min read",
-      tags: ["Python", "CAD", "Automation", "SolidWorks", "Productivity"],
-    },
-    {
-      id: 3,
-      title: "My Journey from Ford to IIT: Lessons in Career Pivoting",
-      excerpt:
-        "Personal insights on transitioning from traditional mechanical engineering roles to AI-focused positions, including challenges and opportunities.",
-      image: "/placeholder.svg?height=300&width=500",
-      category: "Career Insights",
-      author: "Srinivas Nampalli",
-      date: "2025-01-05",
-      readTime: "6 min read",
-      tags: ["Career", "Personal Growth", "Engineering", "AI Transition"],
-    },
-    {
-      id: 4,
-      title: "Building Intelligent Agents for Engineering Applications",
-      excerpt:
-        "Deep dive into creating AI agents that can assist with engineering calculations, design reviews, and project management tasks.",
-      image: "/placeholder.svg?height=300&width=500",
-      category: "AI Development",
-      author: "Srinivas Nampalli",
-      date: "2024-12-28",
-      readTime: "15 min read",
-      tags: ["AI Agents", "Machine Learning", "Engineering", "Python"],
-    },
-    {
-      id: 5,
-      title: "The Role of Data Analysis in Modern Aerospace Engineering",
-      excerpt:
-        "How data-driven approaches are transforming aerospace design, from my experience working on propulsion systems at GE Aerospace.",
-      image: "/placeholder.svg?height=300&width=500",
-      category: "Aerospace",
-      author: "Srinivas Nampalli",
-      date: "2024-12-20",
-      readTime: "10 min read",
-      tags: ["Aerospace", "Data Analysis", "Propulsion", "Engineering"],
-    },
-    {
-      id: 6,
-      title: "Freelancing as an Engineer: Building Your Technical Consulting Business",
-      excerpt:
-        "Practical advice on starting and growing a freelance engineering consultancy, from finding clients to delivering quality projects.",
-      image: "/placeholder.svg?height=300&width=500",
-      category: "Business",
-      author: "Srinivas Nampalli",
-      date: "2024-12-15",
-      readTime: "9 min read",
-      tags: ["Freelancing", "Business", "Consulting", "Engineering"],
-    },
-  ]
+export default async function BlogPage() {
+  const allBlogPosts = await getPosts()
+  const featuredBlogPosts = await getFeaturedPosts()
+
+  const featuredPost = featuredBlogPosts[0] // Assuming only one featured post for simplicity
+  const regularPosts = allBlogPosts.filter((post) => post._id !== featuredPost?._id)
 
   const categories = [
     "All",
@@ -91,9 +22,6 @@ export default function BlogPage() {
     "Aerospace",
     "Business",
   ]
-
-  const featuredPost = blogPosts.find((post) => post.featured)
-  const regularPosts = blogPosts.filter((post) => !post.featured)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -175,13 +103,13 @@ export default function BlogPage() {
                 <div className="grid lg:grid-cols-2 gap-0">
                   <div className="relative h-64 lg:h-full bg-gradient-to-br from-blue-100 to-slate-100">
                     <Image
-                      src={featuredPost.image || "/placeholder.svg"}
+                      src={urlFor(featuredPost.mainImage).url() || "/placeholder.svg"}
                       alt={featuredPost.title}
                       fill
                       className="object-cover"
                     />
                     <div className="absolute top-4 left-4">
-                      <Badge className="bg-blue-600">{featuredPost.category}</Badge>
+                      <Badge className="bg-blue-600">{featuredPost.categories?.[0]?.title || "Uncategorized"}</Badge>
                     </div>
                   </div>
 
@@ -192,11 +120,11 @@ export default function BlogPage() {
                     <div className="flex items-center space-x-6 text-sm text-slate-500 mb-6">
                       <div className="flex items-center space-x-2">
                         <User className="w-4 h-4" />
-                        <span>{featuredPost.author}</span>
+                        <span>{featuredPost.author?.name || "Srinivas Nampalli"}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Calendar className="w-4 h-4" />
-                        <span>{new Date(featuredPost.date).toLocaleDateString()}</span>
+                        <span>{new Date(featuredPost.publishedAt).toLocaleDateString()}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Clock className="w-4 h-4" />
@@ -205,7 +133,7 @@ export default function BlogPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-2 mb-6">
-                      {featuredPost.tags.map((tag, idx) => (
+                      {featuredPost.tags?.map((tag: string, idx: number) => (
                         <Badge key={idx} variant="outline" className="text-xs">
                           {tag}
                         </Badge>
@@ -227,11 +155,11 @@ export default function BlogPage() {
             <h2 className="text-2xl font-bold text-slate-900 mb-8">Latest Articles</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {regularPosts.map((post) => (
-                <Card key={post.id} className="overflow-hidden shadow-lg border-0 hover:shadow-xl transition-shadow">
+                <Card key={post._id} className="overflow-hidden shadow-lg border-0 hover:shadow-xl transition-shadow">
                   <div className="relative h-48 bg-gradient-to-br from-blue-100 to-slate-100">
-                    <Image src={post.image || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
+                    <Image src={urlFor(post.mainImage).url() || "/placeholder.svg"} alt={post.title} fill className="object-cover" />
                     <div className="absolute top-4 left-4">
-                      <Badge className="bg-white text-slate-700">{post.category}</Badge>
+                      <Badge className="bg-white text-slate-700">{post.categories?.[0]?.title || "Uncategorized"}</Badge>
                     </div>
                   </div>
 
@@ -242,7 +170,7 @@ export default function BlogPage() {
                     <div className="flex items-center justify-between text-xs text-slate-500 mb-4">
                       <div className="flex items-center space-x-2">
                         <Calendar className="w-3 h-3" />
-                        <span>{new Date(post.date).toLocaleDateString()}</span>
+                        <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Clock className="w-3 h-3" />
@@ -251,7 +179,7 @@ export default function BlogPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-1 mb-4">
-                      {post.tags.slice(0, 3).map((tag, idx) => (
+                      {post.tags?.slice(0, 3).map((tag: string, idx: number) => (
                         <Badge key={idx} variant="outline" className="text-xs">
                           {tag}
                         </Badge>
